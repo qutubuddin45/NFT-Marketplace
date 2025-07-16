@@ -39,13 +39,9 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         uint256 price
     );
 
-    constructor() ERC721("NFT Marketplace", "NFTM") {}
+    // ✅ Constructor fixed with initialOwner argument for Ownable
+    constructor() ERC721("NFT Marketplace", "NFTM") Ownable(msg.sender) {}
 
-    /**
-     * @dev Creates a new NFT and lists it on the marketplace
-     * @param tokenURI The metadata URI for the NFT
-     * @param price The price in wei for the NFT
-     */
     function createToken(string memory tokenURI, uint256 price) 
         public 
         payable 
@@ -66,14 +62,7 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return newTokenId;
     }
 
-    /**
-     * @dev Lists an existing NFT on the marketplace
-     * @param tokenId The ID of the token to list
-     * @param price The price in wei for the NFT
-     */
-    function createMarketItem(uint256 tokenId, uint256 price) 
-        private 
-    {
+    function createMarketItem(uint256 tokenId, uint256 price) private {
         require(price > 0, "Price must be greater than 0");
         require(ownerOf(tokenId) == msg.sender, "Only owner can list token");
 
@@ -96,15 +85,7 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         );
     }
 
-    /**
-     * @dev Executes the purchase of a marketplace item
-     * @param tokenId The ID of the token to purchase
-     */
-    function buyNFT(uint256 tokenId) 
-        public 
-        payable 
-        nonReentrant 
-    {
+    function buyNFT(uint256 tokenId) public payable nonReentrant {
         uint256 price = idToMarketItem[tokenId].price;
         address seller = idToMarketItem[tokenId].seller;
         
@@ -124,9 +105,6 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         emit MarketItemSold(tokenId, seller, msg.sender, price);
     }
 
-    /**
-     * @dev Returns all unsold market items
-     */
     function fetchMarketItems() public view returns (MarketItem[] memory) {
         uint256 itemCount = _tokenIds.current();
         uint256 unsoldItemCount = _tokenIds.current() - _itemsSold.current();
@@ -146,9 +124,6 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    /**
-     * @dev Returns NFTs owned by the caller
-     */
     function fetchMyNFTs() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds.current();
         uint256 itemCount = 0;
@@ -174,9 +149,6 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    /**
-     * @dev Returns NFTs listed by the caller
-     */
     function fetchItemsListed() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds.current();
         uint256 itemCount = 0;
@@ -202,17 +174,10 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    /**
-     * @dev Updates the listing price (only owner)
-     * @param _listingPrice New listing price in wei
-     */
     function updateListingPrice(uint256 _listingPrice) public onlyOwner {
         listingPrice = _listingPrice;
     }
 
-    /**
-     * @dev Returns the listing price
-     */
     function getListingPrice() public view returns (uint256) {
         return listingPrice;
     }
