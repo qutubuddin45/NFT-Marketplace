@@ -104,9 +104,6 @@ Input validation and error handling
 Contributing
 We welcome contributions to the NFT Marketplace project! Please read our contributing guidelines and submit pull requests for any improvements.
 
-License
-This project is licensed under the MIT License - see the LICENSE file for details.
+<img width="1772" height="832" alt="image" src="https://github.com/user-attachments/assets/97ac3570-11c9-4c47-8288-d8324bca1562" />
 
-Support
-For questions and support, please reach out to our development team or create an issue in the repository.
 
