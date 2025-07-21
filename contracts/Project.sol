@@ -76,5 +76,25 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // (Optional) Additional helper functions like mintNFT, listNFTForSale, buyNFT etc. can be added here
+    // ✅ Function to fetch all unsold market items
+    function fetchUnsoldMarketItems() public view returns (MarketItem[] memory) {
+        uint256 totalItemCount = _tokenIds.current();
+        uint256 unsoldItemCount = totalItemCount - _itemsSold.current();
+        uint256 currentIndex = 0;
+
+        MarketItem[] memory items = new MarketItem[](unsoldItemCount);
+
+        for (uint256 i = 0; i < totalItemCount; i++) {
+            uint256 currentId = i + 1;
+            MarketItem storage currentItem = idToMarketItem[currentId];
+            if (!currentItem.sold) {
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+
+        return items;
+    }
+
+    // (Optional) You can later add minting, listing and buying logic here.
 }
