@@ -12,6 +12,8 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
     Counters.Counter private _tokenIds;
     Counters.Counter private _itemsSold;
 
+    uint256 public listingFee = 0.01 ether;
+
     struct MarketItem {
         uint256 tokenId;
         address payable seller;
@@ -24,7 +26,48 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
 
     constructor() ERC721("MyNFT", "MNFT") {}
 
-    // Function to fetch NFTs created by msg.sender
+    // Mint and list NFT
+    function createToken(string memory tokenURI, uint256 price) public payable nonReentrant returns (uint256) {
+        require(price > 0, "Price must be at least 1 wei");
+        require(msg.value == listingFee, "Must pay listing fee");
+
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
+
+        _mint(msg.sender, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
+
+        createMarketItem(newTokenId, price);
+
+        return newTokenId;
+    }
+
+    function createMarketItem(uint256 tokenId, uint256 price) private {
+        idToMarketItem[tokenId] = MarketItem(
+            tokenId,
+            payable(msg.sender),
+            payable(address(this)),
+            price,
+            false
+        );
+
+        _transfer(msg.sender, address(this), tokenId);
+    }
+
+    // Buy NFT
+    function createMarketSale(uint256 tokenId) public payable nonReentrant {
+        MarketItem storage item = idToMarketItem[tokenId];
+        require(msg.value == item.price, "Please submit the asking price");
+
+        item.owner = payable(msg.sender);
+        item.sold = true;
+        _itemsSold.increment();
+
+        _transfer(address(this), msg.sender, tokenId);
+        item.seller.transfer(msg.value);
+    }
+
+    // Fetch NFTs created by user
     function fetchNFTsCreatedByUser() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds.current();
         uint256 itemCount = 0;
@@ -37,7 +80,6 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         }
 
         MarketItem[] memory items = new MarketItem[](itemCount);
-
         for (uint256 i = 0; i < totalItemCount; i++) {
             if (idToMarketItem[i + 1].seller == msg.sender) {
                 uint256 currentId = i + 1;
@@ -50,7 +92,7 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // Function to fetch NFTs owned by msg.sender
+    // Fetch NFTs owned by user
     function fetchNFTsOwnedByUser() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds.current();
         uint256 itemCount = 0;
@@ -63,7 +105,6 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         }
 
         MarketItem[] memory items = new MarketItem[](itemCount);
-
         for (uint256 i = 0; i < totalItemCount; i++) {
             if (idToMarketItem[i + 1].owner == msg.sender) {
                 uint256 currentId = i + 1;
@@ -76,14 +117,13 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // ✅ Function to fetch all unsold market items
+    // Fetch unsold market items
     function fetchUnsoldMarketItems() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds.current();
         uint256 unsoldItemCount = totalItemCount - _itemsSold.current();
         uint256 currentIndex = 0;
 
         MarketItem[] memory items = new MarketItem[](unsoldItemCount);
-
         for (uint256 i = 0; i < totalItemCount; i++) {
             uint256 currentId = i + 1;
             MarketItem storage currentItem = idToMarketItem[currentId];
@@ -96,5 +136,27 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // (Optional) You can later add minting, listing and buying logic here.
+    // ✅ New Function: Fetch all market items (sold and unsold)
+    function fetchAllMarketItems() public view returns (MarketItem[] memory) {
+        uint256 totalItemCount = _tokenIds.current();
+        MarketItem[] memory items = new MarketItem[](totalItemCount);
+
+        for (uint256 i = 0; i < totalItemCount; i++) {
+            uint256 currentId = i + 1;
+            MarketItem storage currentItem = idToMarketItem[currentId];
+            items[i] = currentItem;
+        }
+
+        return items;
+    }
+
+    // Optional: Update listing fee
+    function updateListingFee(uint256 newFee) public onlyOwner {
+        listingFee = newFee;
+    }
+
+    // Optional: Withdraw listing fees to owner
+    function withdrawFees() public onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
 }
