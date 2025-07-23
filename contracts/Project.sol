@@ -67,6 +67,22 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         item.seller.transfer(msg.value);
     }
 
+    // ✅ Resell NFT owned by user
+    function resellToken(uint256 tokenId, uint256 price) public payable nonReentrant {
+        require(ownerOf(tokenId) == msg.sender, "You do not own this token");
+        require(msg.value == listingFee, "Must pay listing fee");
+        require(price > 0, "Price must be greater than 0");
+
+        MarketItem storage item = idToMarketItem[tokenId];
+        item.sold = false;
+        item.price = price;
+        item.seller = payable(msg.sender);
+        item.owner = payable(address(this));
+        _itemsSold.decrement();
+
+        _transfer(msg.sender, address(this), tokenId);
+    }
+
     // Fetch NFTs created by user
     function fetchNFTsCreatedByUser() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds.current();
@@ -136,7 +152,7 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // ✅ New Function: Fetch all market items (sold and unsold)
+    // Fetch all market items
     function fetchAllMarketItems() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds.current();
         MarketItem[] memory items = new MarketItem[](totalItemCount);
@@ -150,12 +166,12 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // Optional: Update listing fee
+    // Update listing fee
     function updateListingFee(uint256 newFee) public onlyOwner {
         listingFee = newFee;
     }
 
-    // Optional: Withdraw listing fees to owner
+    // Withdraw listing fees
     function withdrawFees() public onlyOwner {
         payable(owner()).transfer(address(this).balance);
     }
