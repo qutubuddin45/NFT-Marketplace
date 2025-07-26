@@ -166,6 +166,12 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
+    // ✅ Get details of a specific NFT by tokenId
+    function getMarketItemDetails(uint256 tokenId) public view returns (MarketItem memory) {
+        require(tokenId > 0 && tokenId <= _tokenIds.current(), "Invalid tokenId");
+        return idToMarketItem[tokenId];
+    }
+
     // Update listing fee
     function updateListingFee(uint256 newFee) public onlyOwner {
         listingFee = newFee;
