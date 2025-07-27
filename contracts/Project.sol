@@ -67,7 +67,7 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         item.seller.transfer(msg.value);
     }
 
-    // ✅ Resell NFT owned by user
+    // Resell NFT owned by user
     function resellToken(uint256 tokenId, uint256 price) public payable nonReentrant {
         require(ownerOf(tokenId) == msg.sender, "You do not own this token");
         require(msg.value == listingFee, "Must pay listing fee");
@@ -166,10 +166,15 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // ✅ Get details of a specific NFT by tokenId
+    // Get details of a specific NFT by tokenId
     function getMarketItemDetails(uint256 tokenId) public view returns (MarketItem memory) {
         require(tokenId > 0 && tokenId <= _tokenIds.current(), "Invalid tokenId");
         return idToMarketItem[tokenId];
+    }
+
+    // Get total number of NFTs currently listed (unsold)
+    function getTotalListedItems() public view returns (uint256) {
+        return _tokenIds.current() - _itemsSold.current();
     }
 
     // Update listing fee
