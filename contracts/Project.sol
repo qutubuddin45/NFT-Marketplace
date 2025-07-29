@@ -67,7 +67,7 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         item.seller.transfer(msg.value);
     }
 
-    // Resell NFT owned by user
+    // Resell NFT
     function resellToken(uint256 tokenId, uint256 price) public payable nonReentrant {
         require(ownerOf(tokenId) == msg.sender, "You do not own this token");
         require(msg.value == listingFee, "Must pay listing fee");
@@ -133,7 +133,7 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // Fetch unsold market items
+    // Fetch unsold items
     function fetchUnsoldMarketItems() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds.current();
         uint256 unsoldItemCount = totalItemCount - _itemsSold.current();
@@ -152,7 +152,7 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // Fetch all market items
+    // Fetch all items
     function fetchAllMarketItems() public view returns (MarketItem[] memory) {
         uint256 totalItemCount = _tokenIds.current();
         MarketItem[] memory items = new MarketItem[](totalItemCount);
@@ -166,29 +166,41 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         return items;
     }
 
-    // Get details of a specific NFT by tokenId
+    // Get item details
     function getMarketItemDetails(uint256 tokenId) public view returns (MarketItem memory) {
         require(tokenId > 0 && tokenId <= _tokenIds.current(), "Invalid tokenId");
         return idToMarketItem[tokenId];
     }
 
-    // Get total number of NFTs currently listed (unsold)
+    // Total listed items
     function getTotalListedItems() public view returns (uint256) {
         return _tokenIds.current() - _itemsSold.current();
     }
 
-    // New Function: Get current listing fee
+    // Listing fee
     function getListingFee() public view returns (uint256) {
         return listingFee;
     }
 
-    // Update listing fee
+    // Update fee
     function updateListingFee(uint256 newFee) public onlyOwner {
         listingFee = newFee;
     }
 
-    // Withdraw listing fees
+    // Withdraw fees
     function withdrawFees() public onlyOwner {
         payable(owner()).transfer(address(this).balance);
+    }
+
+    // 🔥 New Function: Get all token IDs minted
+    function getAllTokenIds() public view returns (uint256[] memory) {
+        uint256 total = _tokenIds.current();
+        uint256[] memory tokenIds = new uint256[](total);
+
+        for (uint256 i = 0; i < total; i++) {
+            tokenIds[i] = i + 1;
+        }
+
+        return tokenIds;
     }
 }
