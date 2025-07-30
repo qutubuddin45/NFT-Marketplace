@@ -192,7 +192,7 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         payable(owner()).transfer(address(this).balance);
     }
 
-    // 🔥 New Function: Get all token IDs minted
+    // 🔥 Get all token IDs minted
     function getAllTokenIds() public view returns (uint256[] memory) {
         uint256 total = _tokenIds.current();
         uint256[] memory tokenIds = new uint256[](total);
@@ -202,5 +202,10 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         }
 
         return tokenIds;
+    }
+
+    // 🔍 New Function: Get total number of NFTs ever minted
+    function getTotalMintedItems() public view returns (uint256) {
+        return _tokenIds.current();
     }
 }
