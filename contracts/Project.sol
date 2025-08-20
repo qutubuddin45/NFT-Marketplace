@@ -234,4 +234,30 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
 
         return items;
     }
+
+    // 🆕 NEW FUNCTION: Get sold items by a specific user
+    function getSoldItemsByUser(address user) public view returns (MarketItem[] memory) {
+        uint256 totalItemCount = _tokenIds.current();
+        uint256 itemCount = 0;
+        uint256 currentIndex = 0;
+
+        // Count how many sold items belong to user
+        for (uint256 i = 0; i < totalItemCount; i++) {
+            if (idToMarketItem[i + 1].seller == user && idToMarketItem[i + 1].sold) {
+                itemCount += 1;
+            }
+        }
+
+        MarketItem[] memory items = new MarketItem[](itemCount);
+        for (uint256 i = 0; i < totalItemCount; i++) {
+            if (idToMarketItem[i + 1].seller == user && idToMarketItem[i + 1].sold) {
+                uint256 currentId = i + 1;
+                MarketItem storage currentItem = idToMarketItem[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+
+        return items;
+    }
 }
