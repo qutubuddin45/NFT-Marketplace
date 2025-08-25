@@ -215,7 +215,6 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         uint256 itemCount = 0;
         uint256 currentIndex = 0;
 
-        // Count how many unsold items belong to user
         for (uint256 i = 0; i < totalItemCount; i++) {
             if (idToMarketItem[i + 1].seller == user && !idToMarketItem[i + 1].sold) {
                 itemCount += 1;
@@ -241,7 +240,6 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
         uint256 itemCount = 0;
         uint256 currentIndex = 0;
 
-        // Count how many sold items belong to user
         for (uint256 i = 0; i < totalItemCount; i++) {
             if (idToMarketItem[i + 1].seller == user && idToMarketItem[i + 1].sold) {
                 itemCount += 1;
@@ -253,6 +251,34 @@ contract NFTMarketplace is ERC721URIStorage, Ownable, ReentrancyGuard {
             if (idToMarketItem[i + 1].seller == user && idToMarketItem[i + 1].sold) {
                 uint256 currentId = i + 1;
                 MarketItem storage currentItem = idToMarketItem[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+
+        return items;
+    }
+
+    // 🆕 NEW FUNCTION: Get items within a price range (only unsold)
+    function getItemsByPriceRange(uint256 minPrice, uint256 maxPrice) public view returns (MarketItem[] memory) {
+        require(minPrice <= maxPrice, "Invalid price range");
+
+        uint256 totalItemCount = _tokenIds.current();
+        uint256 itemCount = 0;
+        uint256 currentIndex = 0;
+
+        // Count how many items fall in the range
+        for (uint256 i = 0; i < totalItemCount; i++) {
+            MarketItem storage currentItem = idToMarketItem[i + 1];
+            if (!currentItem.sold && currentItem.price >= minPrice && currentItem.price <= maxPrice) {
+                itemCount += 1;
+            }
+        }
+
+        MarketItem[] memory items = new MarketItem[](itemCount);
+        for (uint256 i = 0; i < totalItemCount; i++) {
+            MarketItem storage currentItem = idToMarketItem[i + 1];
+            if (!currentItem.sold && currentItem.price >= minPrice && currentItem.price <= maxPrice) {
                 items[currentIndex] = currentItem;
                 currentIndex += 1;
             }
